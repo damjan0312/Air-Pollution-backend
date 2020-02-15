@@ -38,6 +38,7 @@ namespace AirPollutionBackend.Controllers
         [System.Web.Http.Route("api/add")]
         public bool Add(Pollution newPollution)
         {
+            PollutionService.AddToHistory(newPollution);
             return PollutionService.Add(newPollution);
         }
     }

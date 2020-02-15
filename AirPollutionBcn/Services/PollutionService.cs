@@ -37,7 +37,7 @@ namespace AirPollutionBackend.Services
                 p.current.weather.pressure = doc.AsBsonDocument["current"].AsBsonDocument["weather"].AsBsonDocument["pr"].AsDouble.ToString();
                 p.current.weather.humidity = doc.AsBsonDocument["current"].AsBsonDocument["weather"].AsBsonDocument["hu"].AsDouble.ToString();
                 p.current.pollution.timestamp = doc.AsBsonDocument["current"].AsBsonDocument["pollution"].AsBsonDocument["ts"].AsString;
-                p.current.pollution.aqius = doc.AsBsonDocument["current"].AsBsonDocument["pollution"].AsBsonDocument["aqius"].AsDouble.ToString();
+                p.current.pollution.aqius = doc.AsBsonDocument["current"].AsBsonDocument["pollution"].AsBsonDocument["aqius"].AsInt32;
 
                 return p;
             }
@@ -57,23 +57,27 @@ namespace AirPollutionBackend.Services
 
             List<Pollution> pollutions = new List<Pollution>();
 
-            var documents = collection.Find((new BsonDocument())).Limit(5).Sort("{aquis:1}").ToList();
+            var filter = Builders<BsonDocument>.Filter.Empty;
+            var sort = Builders<BsonDocument>.Sort.Ascending("aqius");
 
-            foreach(BsonDocument doc in documents)
+            var documents = collection.Find((new BsonDocument())).ToList();
+
+            foreach (BsonDocument doc in documents)
             {
                 Pollution p = new Pollution();
-                p.id = doc.AsBsonDocument["_id"].AsObjectId.ToString();
-                p.cityId = doc.AsBsonDocument["cityId"].AsObjectId.ToString();
-                p.stateId = doc.AsBsonDocument["stateId"].AsObjectId.ToString();
-                p.current.weather.timestamp = doc.AsBsonDocument["current"].AsBsonDocument["weather"].AsBsonDocument["ts"].AsString;
-                p.current.weather.temperature = doc.AsBsonDocument["current"].AsBsonDocument["weather"].AsBsonDocument["tp"].AsDouble.ToString();
-                p.current.weather.pressure = doc.AsBsonDocument["current"].AsBsonDocument["weather"].AsBsonDocument["pr"].AsDouble.ToString();
-                p.current.weather.humidity = doc.AsBsonDocument["current"].AsBsonDocument["weather"].AsBsonDocument["hu"].AsDouble.ToString();
-                p.current.pollution.timestamp = doc.AsBsonDocument["current"].AsBsonDocument["pollution"].AsBsonDocument["ts"].AsString;
-                p.current.pollution.aqius = doc.AsBsonDocument["current"].AsBsonDocument["pollution"].AsBsonDocument["aqius"].AsDouble.ToString();
+                p.id = doc.AsBsonDocument["_id"].AsString;
+                p.cityId = doc.AsBsonDocument["cityId"].AsString.ToString();
+                p.stateId = doc.AsBsonDocument["stateId"].AsString.ToString();
+                p.current.weather.timestamp = doc.AsBsonDocument["current"].AsBsonDocument["weather"].AsBsonDocument["timestamp"].AsString;
+                p.current.weather.temperature = doc.AsBsonDocument["current"].AsBsonDocument["weather"].AsBsonDocument["temperature"].AsString;
+                p.current.weather.pressure = doc.AsBsonDocument["current"].AsBsonDocument["weather"].AsBsonDocument["pressure"].AsString;
+                p.current.weather.humidity = doc.AsBsonDocument["current"].AsBsonDocument["weather"].AsBsonDocument["humidity"].AsString;
+                p.current.pollution.timestamp = doc.AsBsonDocument["current"].AsBsonDocument["pollution"].AsBsonDocument["timestamp"].AsString;
+                p.current.pollution.aqius = doc.AsBsonDocument["current"].AsBsonDocument["pollution"].AsBsonDocument["aqius"].AsInt32;
 
                 pollutions.Add(p);
             }
+            pollutions = pollutions.OrderByDescending(item => item.current.pollution.aqius).Take(5).ToList();
             
             return pollutions;
 
@@ -90,7 +94,7 @@ namespace AirPollutionBackend.Services
 
             var builder = Builders<BsonDocument>.Filter;
 
-            var filter = builder.Eq("cityId", ObjectId.Parse(cityId));
+            var filter = builder.Eq("cityId", cityId);
 
             var documents = collection.Find(filter).ToList();
 
@@ -99,15 +103,15 @@ namespace AirPollutionBackend.Services
             foreach (BsonDocument doc in documents)
             {
                 Pollution p = new Pollution();
-                p.id = doc.AsBsonDocument["_id"].AsObjectId.ToString();
-                p.cityId = doc.AsBsonDocument["cityId"].AsObjectId.ToString();
-                p.stateId = doc.AsBsonDocument["stateId"].AsObjectId.ToString();
-                p.current.weather.timestamp = doc.AsBsonDocument["current"].AsBsonDocument["weather"].AsBsonDocument["ts"].AsString;
-                p.current.weather.temperature = doc.AsBsonDocument["current"].AsBsonDocument["weather"].AsBsonDocument["tp"].AsDouble.ToString();
-                p.current.weather.pressure = doc.AsBsonDocument["current"].AsBsonDocument["weather"].AsBsonDocument["pr"].AsDouble.ToString();
-                p.current.weather.humidity = doc.AsBsonDocument["current"].AsBsonDocument["weather"].AsBsonDocument["hu"].AsDouble.ToString();
-                p.current.pollution.timestamp = doc.AsBsonDocument["current"].AsBsonDocument["pollution"].AsBsonDocument["ts"].AsString;
-                p.current.pollution.aqius = doc.AsBsonDocument["current"].AsBsonDocument["pollution"].AsBsonDocument["aqius"].AsDouble.ToString();
+                p.id = doc.AsBsonDocument["_id"].AsString;
+                p.cityId = doc.AsBsonDocument["cityId"].AsString;
+                p.stateId = doc.AsBsonDocument["stateId"].AsString;
+                p.current.weather.timestamp = doc.AsBsonDocument["current"].AsBsonDocument["weather"].AsBsonDocument["timestamp"].AsString;
+                p.current.weather.temperature = doc.AsBsonDocument["current"].AsBsonDocument["weather"].AsBsonDocument["temperature"].AsString;
+                p.current.weather.pressure = doc.AsBsonDocument["current"].AsBsonDocument["weather"].AsBsonDocument["pressure"].AsString;
+                p.current.weather.humidity = doc.AsBsonDocument["current"].AsBsonDocument["weather"].AsBsonDocument["humidity"].AsString;
+                p.current.pollution.timestamp = doc.AsBsonDocument["current"].AsBsonDocument["pollution"].AsBsonDocument["timestamp"].AsString;
+                p.current.pollution.aqius = doc.AsBsonDocument["current"].AsBsonDocument["pollution"].AsBsonDocument["aqius"].AsInt32;
 
                 pollutions.Add(p);
             }
@@ -138,22 +142,63 @@ namespace AirPollutionBackend.Services
 
         public static bool Add(Pollution newPollution)
         {
-            //var connectionString = "mongodb://localhost/?safe=true";
+            var connectionString = "mongodb://localhost/?safe=true";
 
-            //var client = new MongoClient(connectionString);
+            var client = new MongoClient(connectionString);
 
-            //var db = client.GetDatabase("airpollutionDB");
+            var db = client.GetDatabase("airpollutionDB");
 
-            //var collection = db.GetCollection<BsonDocument>("pollutionHistory");
+            try
+            {
+                var collection = db.GetCollection<BsonDocument>("pollution");
 
-            //var builder = Builders<BsonDocument>.Filter;
+                var builder = Builders<BsonDocument>.Filter;
 
-            //var filter = builder.Eq("_id", ObjectId.Parse(Id));
+                var filter = builder.Eq("cityId", newPollution.cityId);
 
-            //collection.DeleteMany(filter);
+                collection.DeleteMany(filter);
+            
 
+                builder = Builders<BsonDocument>.Filter;
+
+                newPollution.id= ObjectId.GenerateNewId().ToString();
+
+                collection.InsertOne( newPollution.ToBsonDocument());
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
+            
             return true;
 
         }
+
+        public static bool AddToHistory(Pollution newPollution)
+        {
+            try
+            {
+                var connectionString = "mongodb://localhost/?safe=true";
+
+                var client = new MongoClient(connectionString);
+
+                var db = client.GetDatabase("airpollutionDB");
+
+                var collection = db.GetCollection<BsonDocument>("pollutionHistory");
+
+                //var builder = Builders<BsonDocument>.Filter;
+
+                newPollution.id = ObjectId.GenerateNewId().ToString();
+
+                collection.InsertOne(newPollution.ToBsonDocument());
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
+
+            return true;
+        }
+
     }
 }

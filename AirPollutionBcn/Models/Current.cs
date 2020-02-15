@@ -28,6 +28,6 @@ namespace AirPollutionBackend.Models
     public class AirPollution
     {
         public string timestamp { get; set; }
-        public string aqius { get; set; }
+        public int aqius { get; set; }
     }
 }
