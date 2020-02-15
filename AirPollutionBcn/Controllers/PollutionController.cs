@@ -12,9 +12,9 @@ namespace AirPollutionBackend.Controllers
     public class PollutionController : ApiController
     {
         [System.Web.Http.Route("api/pollution")]
-        public Pollution getPollution(string cityId,string stateId)
+        public Pollution getPollution(string cityId, string stateId)
         {
-            return PollutionService.GetPollution(cityId,stateId);
+            return PollutionService.GetPollution(cityId, stateId);
         }
         [System.Web.Http.Route("api/mostPolluted")]
         public List<Pollution> getMostPollutedCities()
@@ -28,11 +28,17 @@ namespace AirPollutionBackend.Controllers
             return PollutionService.getHistory(cityId);
         }
 
-        
+
         [System.Web.Http.Route("api/deleteHistory")]
         public bool deleteHistory(string Id)
         {
-           return PollutionService.deleteHistory(Id);
+            return PollutionService.deleteHistory(Id);
+        }
+
+        [System.Web.Http.Route("api/add")]
+        public bool Add(Pollution newPollution)
+        {
+            return PollutionService.Add(newPollution);
         }
     }
 }

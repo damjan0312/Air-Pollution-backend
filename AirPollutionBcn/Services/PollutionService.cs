@@ -135,5 +135,25 @@ namespace AirPollutionBackend.Services
             return true;
             
         }
+
+        public static bool Add(Pollution newPollution)
+        {
+            //var connectionString = "mongodb://localhost/?safe=true";
+
+            //var client = new MongoClient(connectionString);
+
+            //var db = client.GetDatabase("airpollutionDB");
+
+            //var collection = db.GetCollection<BsonDocument>("pollutionHistory");
+
+            //var builder = Builders<BsonDocument>.Filter;
+
+            //var filter = builder.Eq("_id", ObjectId.Parse(Id));
+
+            //collection.DeleteMany(filter);
+
+            return true;
+
+        }
     }
 }
